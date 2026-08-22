@@ -25,3 +25,7 @@ jobs:
 
       - name: Print operating system
         run: 'echo "OS: ${{ runner.os }}"'
+
+      - name: Deliberately fail
+        run: exit 1
+        
