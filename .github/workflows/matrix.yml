@@ -35,3 +35,7 @@ jobs:
 
       - name: Print operating system
         run: echo "Running on ${{ matrix.os }}"
+    
+      - name: Deliberately fail
+        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
+        run: exit 1
