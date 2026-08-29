@@ -1,7 +1,8 @@
 name: Python Matrix
 
 on:
-  push:
+  #push:  
+  workflow_dispatch:
 
 jobs:
   test-python:

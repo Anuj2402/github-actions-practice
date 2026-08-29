@@ -1,0 +1,24 @@
+name: Self-Hosted Runner Test
+
+on:
+  push:
+
+jobs:
+  test-self-hosted:
+    runs-on: self-hosted
+
+    steps:
+      - name: Print hostname
+        run: hostname
+
+      - name: Print working directory
+        run: pwd
+
+      - name: Create test file
+        run: |
+          echo "Created by GitHub Actions on self-hosted runner" > ~/github-actions-test.txt
+
+      - name: Verify test file
+        run: |
+          ls -l ~/github-actions-test.txt
+          cat ~/github-actions-test.txt
