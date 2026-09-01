@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        run: echo "Building the app"
+        run: |
+            echo "Building the app"
+            exit 1
 
   test:
     needs: build
