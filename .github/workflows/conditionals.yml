@@ -15,4 +15,12 @@ jobs:
       - name: Main branch step
         if: github.ref == 'refs/heads/main'
         run: echo "This runs only on main"
-        
+
+      - name: Intentional failure
+        run: |
+          echo "This step will fail"
+          exit 1
+
+      - name: Failure handler
+        if: failure()
+        run: echo "The previous step failed!"
