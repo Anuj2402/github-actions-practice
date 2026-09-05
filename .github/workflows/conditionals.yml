@@ -24,3 +24,11 @@ jobs:
       - name: Failure handler
         if: failure()
         run: echo "The previous step failed!"
+
+  push-only-job:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Push only
+        run: echo "This job runs only on push events"
