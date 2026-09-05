@@ -12,6 +12,15 @@ jobs:
       - name: Normal step
         run: echo "This always runs"
 
+      - name: Allowed failure
+        continue-on-error: true
+        run: |
+          echo "This step will fail"
+          exit 1
+
+      - name: After allowed failure
+        run: echo "The workflow continues!"
+
       - name: Main branch step
         if: github.ref == 'refs/heads/main'
         run: echo "This runs only on main"
@@ -24,11 +33,3 @@ jobs:
       - name: Failure handler
         if: failure()
         run: echo "The previous step failed!"
-
-  push-only-job:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Push only
-        run: echo "This job runs only on push events"
