@@ -1,0 +1,21 @@
+name: Artifact Between Jobs
+
+on:
+  push:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate file
+        run: |
+          echo "Hello from Job 1" > message.txt
+          cat message.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: job1-artifact
+          path: message.txt
+        
