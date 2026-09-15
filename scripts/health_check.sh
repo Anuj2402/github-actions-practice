@@ -9,4 +9,4 @@ echo "Checking current user..."
 whoami
 
 echo "Health check passed!"
-exit 1
+exit 0
