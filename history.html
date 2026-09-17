@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat History</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; background: #f8fafc; }
+      .container { max-width: 800px; margin: 0 auto; }
+      .msg { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+      .meta { color: #64748b; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Chat History</h1>
+      <div id="history"></div>
+    </div>
+
+    <script>
+      async function loadHistory() {
+        const res = await fetch('/api/chat-history');
+        const messages = await res.json();
+        const el = document.getElementById('history');
+        el.innerHTML = messages.map(msg => `
+          <div class="msg">
+            <div><strong>${msg.user}</strong> <span class="meta">${new Date(msg.created_at).toLocaleString()}</span></div>
+            <div>${msg.message}</div>
+          </div>
+        `).join('');
+      }
+
+      loadHistory();
+    </script>
+  </body>
+</html>
