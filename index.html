@@ -1,62 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat App</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 2rem; background: #f5f7fb; }
-      .container { max-width: 700px; margin: 0 auto; }
-      form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-      input, button { padding: 0.75rem; font-size: 1rem; }
-      input[type="text"] { flex: 1; }
-      button { background: #2563eb; color: white; border: none; cursor: pointer; }
-      #messages { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-      .msg { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
-      .meta { color: #64748b; font-size: 0.85rem; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Chat App</h1>
-      <form id="chatForm">
-        <input id="user" type="text" placeholder="Your name" value="Guest" />
-        <input id="message" type="text" placeholder="Type a message" />
-        <button type="submit">Send</button>
-      </form>
-      <div id="messages"></div>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Go Real-Time Chat</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #e9edf0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+    }
 
-    <script>
-      async function loadMessages() {
-        const res = await fetch('/api/chat-history');
-        const messages = await res.json();
-        const el = document.getElementById('messages');
-        el.innerHTML = messages.map(msg => `
-          <div class="msg">
-            <div><strong>${msg.user}</strong> <span class="meta">${new Date(msg.created_at).toLocaleString()}</span></div>
-            <div>${msg.message}</div>
-          </div>
-        `).join('');
+    h2 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #chat-header {
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      padding: 10px;
+      font-size: 0.9em;
+      color: #666;
+      position: sticky;
+      top: 0;
+      background-color: #e9edf0;
+      z-index: 1;
+    }
+
+    #chat {
+      width: 90%;
+      max-width: 600px;
+      height: 500px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      padding: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      position: relative;
+      padding: 10px 15px 30px 15px;
+      border-radius: 15px;
+      max-width: 75%;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      min-width: 100px;
+      min-height: 40px;
+    }
+
+    .self {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+    }
+
+    .other {
+      background-color: #f1f0f0;
+      align-self: flex-start;
+    }
+
+    .timestamp {
+      font-size: 0.75em;
+      color: #777;
+      position: absolute;
+      bottom: 6px;
+      right: 12px;
+    }
+
+    .system {
+      align-self: center;
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    #input-area {
+      width: 90%;
+      max-width: 600px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #msg {
+      flex-grow: 1;
+      padding: 10px 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 1em;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .history-link {
+      margin-top: 10px;
+      color: #4caf50;
+      text-decoration: none;
+    }
+
+    .history-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h2>Real-Time Chat</h2>
+
+  <div id="chat-header" class="system">You are chatting with ...</div>
+
+  <div id="chat"></div>
+
+  <div id="input-area">
+    <input type="text" id="msg" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <a href="history.html" class="history-link">View Chat History</a>
+
+  <script>
+    const from = prompt("Your name?");
+    const to = prompt("Who are you chatting with?");
+    const chatBox = document.getElementById("chat");
+    const header = document.getElementById("chat-header");
+
+    const ws = new WebSocket(`ws://localhost:8080/ws?from=${from}&to=${to}`);
+
+    ws.onopen = () => {
+      header.textContent = "You are chatting with " + to;
+    };
+
+    ws.onmessage = (event) => {
+      const raw = event.data;
+      const match = raw.match(/^\[(.*?)\] (.*?) → (.*?): (.*)$/);
+
+      if (!match) {
+        appendSystemMessage(raw);
+        return;
       }
 
-      document.getElementById('chatForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const user = document.getElementById('user').value;
-        const message = document.getElementById('message').value;
-        if (!message.trim()) return;
+      const [, datetime, fromUser, , message] = match;
+      const isOwn = fromUser === from;
 
-        await fetch('/api/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user, message })
-        });
+      appendMessage(message, datetime, isOwn ? 'self' : 'other');
+    };
 
-        document.getElementById('message').value = '';
-        await loadMessages();
-      });
+    ws.onerror = (e) => {
+      appendSystemMessage("WebSocket error");
+      console.error(e);
+    };
 
-      loadMessages();
-    </script>
-  </body>
+    ws.onclose = () => {
+      appendSystemMessage("Disconnected");
+    };
+
+    function sendMessage() {
+      const msgInput = document.getElementById("msg");
+      const msg = msgInput.value;
+      if (msg.trim() !== "") {
+        ws.send(msg);
+        msgInput.value = "";
+      }
+    }
+
+    function appendMessage(text, time, type) {
+      const bubble = document.createElement("div");
+      bubble.classList.add("message", type);
+      bubble.textContent = text;
+
+      const timeEl = document.createElement("div");
+      timeEl.classList.add("timestamp");
+      timeEl.textContent = time;
+
+      bubble.appendChild(timeEl);
+      chatBox.appendChild(bubble);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendSystemMessage(msg) {
+      const line = document.createElement("div");
+      line.textContent = msg;
+      line.classList.add("system");
+      chatBox.appendChild(line);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    document.getElementById("msg").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
 </html>
