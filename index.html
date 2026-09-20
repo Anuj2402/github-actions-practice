@@ -144,7 +144,8 @@
     const chatBox = document.getElementById("chat");
     const header = document.getElementById("chat-header");
 
-    const ws = new WebSocket(`ws://localhost:8080/ws?from=${from}&to=${to}`);
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws?from=${from}&to=${to}`);
 
     ws.onopen = () => {
       header.textContent = "You are chatting with " + to;
