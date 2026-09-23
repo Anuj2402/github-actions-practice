@@ -21,4 +21,4 @@ jobs:
           language: "en"
 
       - name: Check output
-        run: echo "Greeted: ${{ steps.greeting.outputs.greeted }}"
+        run: 'echo "Greeted: ${{ steps.greeting.outputs.greeted }}"'

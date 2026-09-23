@@ -1,39 +1,48 @@
 name: Setup and Greet
-description: Print a greeting, date, and runner OS
+description: A custom composite action that prints a greeting and runner information
 
 inputs:
   name:
-    description: "Name to greet"
+    description: Name to greet
     required: true
 
   language:
-    description: "Greeting language"
+    description: Language for the greeting
     required: false
-    default: "en"
+    default: en
 
 outputs:
   greeted:
-    description: "Whether the greeting was printed"
+    description: Whether the greeting was printed
     value: ${{ steps.greet.outputs.greeted }}
 
 runs:
   using: composite
+
   steps:
     - name: Print greeting
       id: greet
       shell: bash
       run: |
-        if [ "${{ inputs.language }}" = "en" ]; then
-          echo "Hello, ${{ inputs.name }}!"
-        elif [ "${{ inputs.language }}" = "hi" ]; then
-          echo "Namaste, ${{ inputs.name }}!"
-        else
-          echo "Hello, ${{ inputs.name }}!"
-        fi
-
-        echo "Date: $(date)"
-        echo "Runner OS: ${{ runner.os }}"
+        case "${{ inputs.language }}" in
+          en)
+            echo "Hello, ${{ inputs.name }}!"
+            ;;
+          hi)
+            echo "Namaste, ${{ inputs.name }}!"
+            ;;
+          es)
+            echo "Hola, ${{ inputs.name }}!"
+            ;;
+          *)
+            echo "Hello, ${{ inputs.name }}!"
+            ;;
+        esac
 
         echo "greeted=true" >> "$GITHUB_OUTPUT"
 
-  
+    - name: Print runner information
+      shell: bash
+      run: |
+        echo "Current date: $(date)"
+        echo "Runner OS: $RUNNER_OS"
