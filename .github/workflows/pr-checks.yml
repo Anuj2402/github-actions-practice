@@ -1,0 +1,59 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  file-size-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check file sizes
+        run: |
+          for file in $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}); do
+            if [ -f "$file" ]; then
+              size=$(stat -c%s "$file")
+
+              if [ "$size" -gt 1048576 ]; then
+                echo "❌ File is larger than 1 MB: $file"
+                exit 1
+              fi
+
+              echo "✅ File size OK: $file"
+            fi
+          done
+
+  branch-name-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check branch name
+        run: |
+          branch="${{ github.head_ref }}"
+
+          echo "Branch name: $branch"
+
+          if [[ "$branch" == feature/* || "$branch" == fix/* || "$branch" == docs/* ]]; then
+            echo "✅ Branch name is valid"
+          else
+            echo "❌ Invalid branch name: $branch"
+            echo "Branch must start with feature/, fix/, or docs/"
+            exit 1
+          fi
+
+  pr-body-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR description
+        run: |
+          if [ -z "${{ github.event.pull_request.body }}" ]; then
+            echo "⚠️ Warning: PR description is empty"
+          else
+            echo "✅ PR description is present"
+          fi
