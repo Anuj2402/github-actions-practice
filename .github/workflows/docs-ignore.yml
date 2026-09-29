@@ -1,0 +1,21 @@
+name: Docs Ignore Test
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+
+jobs:
+  docs-ignore-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show trigger
+        run: |
+          echo "Workflow triggered!"
+          echo "Branch: ${{ github.ref_name }}"
+          

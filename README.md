@@ -5,3 +5,4 @@
 This repository contains a small Dockerized Go chat app and the GitHub Actions workflows used to build and push the image to Docker Hub.
 PR lifecycle test
 Testing synchronize event
+Testing path filters
