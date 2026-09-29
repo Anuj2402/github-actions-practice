@@ -1,7 +1,9 @@
 name: Hello GitHub Actions
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   greet:
@@ -25,6 +27,3 @@ jobs:
 
       - name: Print operating system
         run: 'echo "OS: ${{ runner.os }}"'
-
-     # - name: Deliberately fail
-      #  run: exit 1
