@@ -1,0 +1,55 @@
+name: Reusable Build & Test
+
+on:
+  workflow_call:
+    inputs:
+      go_version:
+        description: 'Go version to use'
+        type: string
+        default: '1.22'
+      run_tests:
+        description: 'Whether to run tests'
+        type: boolean
+        default: true
+    outputs:
+      test_result:
+        description: 'Result of the test run: passed or failed'
+        value: ${{ jobs.build-test.outputs.test_result }}
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    outputs:
+      test_result: ${{ steps.set-result.outputs.test_result }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go_version }}
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Build
+        run: go build -o /tmp/chat-server .
+
+      - name: Run tests
+        id: run-tests
+        if: ${{ inputs.run_tests }}
+        run: go test ./... -v
+
+      - name: Set output
+        id: set-result
+        if: always()
+        run: |
+          if [ "${{ inputs.run_tests }}" != "true" ]; then
+            echo "test_result=skipped" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.run-tests.outcome }}" == "success" ]; then
+            echo "test_result=passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "test_result=failed" >> "$GITHUB_OUTPUT"
+          fi
