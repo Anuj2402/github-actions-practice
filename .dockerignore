@@ -16,4 +16,3 @@ dist
 *.test
 *.out
 Dockerfile
-*_test.go
